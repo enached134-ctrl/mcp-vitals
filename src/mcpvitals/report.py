@@ -1,0 +1,73 @@
+"""Render a shareable HTML report for a graded MCP server."""
+# ruff: noqa: E501  (inline HTML/CSS template)
+
+from __future__ import annotations
+
+from . import grade_letter
+from .connect import Inventory
+from .l1_static import LayerResult
+
+_GRADE_COLOR = {"A": "#34D399", "B": "#5EEAD4", "C": "#FBBF24", "D": "#FB923C", "F": "#F87171"}
+
+
+def render(inv: Inventory, l1: LayerResult) -> str:
+    grade = grade_letter(l1.score)
+    gc = _GRADE_COLOR[grade]
+
+    tool_rows = ""
+    for ts in sorted(l1.tools, key=lambda t: t.score):
+        checks = "".join(
+            f'<li class="{"ok" if c.ok else "no"}">{"✓" if c.ok else "✕"} {c.name}'
+            f'{f" · <span>{c.detail}</span>" if c.detail else ""}</li>'
+            for c in ts.checks
+        )
+        tg = grade_letter(ts.score)
+        tool_rows += f"""<div class="tool">
+          <div class="thead"><span class="tname">{ts.tool}</span>
+            <span class="tscore" style="color:{_GRADE_COLOR[tg]}">{ts.score:.0f} · {tg}</span></div>
+          <ul class="checks">{checks}</ul></div>"""
+
+    layers = ""
+    from . import LAYER_WEIGHTS
+    done = {"L1": f"{l1.score:.0f}"}
+    for lid, w in LAYER_WEIGHTS.items():
+        val = done.get(lid, "—")
+        cls = "layer done" if lid in done else "layer todo"
+        name = {"L1": "Static", "L2": "Behavioral", "L3": "Agent-usability", "L4": "Adversarial", "L5": "Ops"}[lid]
+        layers += f'<div class="{cls}"><div class="lid">{lid} · {name}</div><div class="lval">{val}</div><div class="lw">weight {w}</div></div>'
+
+    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>mcp-vitals · {inv.target}</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{{margin:0;padding:0;box-sizing:border-box}} body{{background:#0A0E1A;color:#E8EEF6;font-family:'Space Grotesk',sans-serif;padding:52px 24px 80px}}
+.wrap{{max-width:900px;margin:0 auto}} .kick{{font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:3px;color:#5EEAD4;text-transform:uppercase}}
+.top{{display:flex;align-items:center;gap:30px;margin:18px 0 8px;flex-wrap:wrap}}
+.gbadge{{width:130px;height:130px;border-radius:24px;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:600;font-size:78px;border:2px solid {gc};color:{gc};box-shadow:0 0 50px {gc}22}}
+.tt h1{{font-family:'JetBrains Mono',monospace;font-size:23px;color:#F4F7FB;font-weight:600;word-break:break-all}}
+.tt .m{{color:#94A3B8;font-size:16px;margin-top:8px}} .tt .m b{{color:#E8EEF6}}
+.layers{{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:30px 0}}
+.layer{{border-radius:12px;padding:16px 14px;border:1px solid rgba(148,163,184,.16)}}
+.layer.done{{background:rgba(6,50,44,.3);border-color:rgba(52,211,153,.4)}} .layer.todo{{opacity:.5}}
+.lid{{font-size:14px;color:#CBD5E1;font-weight:600}} .lval{{font-family:'Fraunces',serif;font-size:34px;color:#5EEAD4;margin:4px 0}} .layer.todo .lval{{color:#64748B}}
+.lw{{font-family:'JetBrains Mono',monospace;font-size:12px;color:#7C89A0}}
+h2{{font-size:20px;color:#F4F7FB;margin:30px 0 14px;border-bottom:1px solid rgba(148,163,184,.16);padding-bottom:10px}}
+.tool{{background:rgba(20,28,45,.5);border-radius:12px;padding:18px 20px;margin-bottom:12px;border-left:3px solid {gc}}}
+.thead{{display:flex;justify-content:space-between;align-items:center}} .tname{{font-family:'JetBrains Mono',monospace;font-size:18px;color:#F4F7FB;font-weight:600}}
+.tscore{{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700}}
+.checks{{list-style:none;margin-top:12px;display:flex;flex-direction:column;gap:5px}}
+.checks li{{font-size:15px;color:#CBD5E1}} .checks li.ok{{color:#8FE9CE}} .checks li.no{{color:#FCA5A5}} .checks li span{{color:#7C89A0;font-family:'JetBrains Mono',monospace;font-size:13px}}
+.foot{{margin-top:36px;padding-top:20px;border-top:1px solid rgba(148,163,184,.16);font-family:'JetBrains Mono',monospace;font-size:13px;color:#7C89A0}}
+.err{{background:rgba(127,29,29,.3);border:1px solid rgba(248,113,113,.4);border-radius:12px;padding:18px;color:#FCA5A5}}
+</style></head><body><div class="wrap">
+<div class="kick">mcp-vitals · reliability grade</div>
+<div class="top"><div class="gbadge">{grade}</div>
+  <div class="tt"><h1>{inv.target}</h1>
+    <div class="m"><b>{len(inv.tools)}</b> tools · <b>{len(inv.resources)}</b> resources · <b>{len(inv.prompts)}</b> prompts · L1 score <b>{l1.score:.0f}/100</b></div></div></div>
+{'<div class="err">Connection failed: ' + inv.error + '</div>' if inv.error else ''}
+<div class="layers">{layers}</div>
+<h2>L1 · Static — schema quality per tool</h2>
+{tool_rows or '<p style="color:#7C89A0">No tools enumerated.</p>'}
+<div class="foot">Generated by mcp-vitals · M1 grades L1 (static). L2 behavioral, L3 agent-usability, L4 adversarial, L5 ops — on the roadmap.</div>
+</div></body></html>"""
