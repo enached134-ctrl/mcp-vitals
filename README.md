@@ -40,7 +40,7 @@ non-zero when the grade regresses against a baseline.
 ## Status — building in public
 
 - [x] **M1**: connector (enumerate tools/resources/prompts) + L1 static linter + HTML report — grades a real server end-to-end
-- [ ] M2: L2 behavioral sandbox suite
+- [x] **M2**: L2 behavioral suite — auto-generates valid/invalid cases from each schema, runs them, measures success rate, graceful-error handling, and p50/p95 latency. Read-only by default (safe on third-party servers)
 - [ ] M3: L3 agent-usability judge battery (+ calibration) + L4 + L5
 - [ ] M4: GitHub Action + badge endpoint + the launch run (grade the top public MCP servers)
 
@@ -48,7 +48,14 @@ non-zero when the grade regresses against a baseline.
 
 ```bash
 pip install -e .
-mcpvitals grade "python -m agentic_rag_mcp.server"   # any stdio command or http(s):// URL
+
+# L1 static grade (no calls to the server):
+mcpvitals grade "python examples/sample_server.py"
+
+# + L2 behavioral (calls read-only tools, safe by default):
+mcpvitals grade "python examples/sample_server.py" --behavioral
+
+# any stdio command or http(s):// URL works; add --min-grade B to gate CI.
 # → writes report.html + score.json
 ```
 

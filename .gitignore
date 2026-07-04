@@ -16,3 +16,7 @@ score.json
 .DS_Store
 .idea/
 .vscode/
+
+# example run artifacts
+sample.html
+sample.json

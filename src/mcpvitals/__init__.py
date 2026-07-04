@@ -15,3 +15,12 @@ def grade_letter(score: float) -> str:
         if score >= cutoff:
             return letter
     return "F"
+
+
+def combine(layer_scores: dict[str, float]) -> float:
+    """Weighted overall score across the layers that actually ran."""
+    weights = {k: LAYER_WEIGHTS[k] for k in layer_scores if k in LAYER_WEIGHTS}
+    total = sum(weights.values())
+    if not total:
+        return 0.0
+    return round(sum(layer_scores[k] * weights[k] for k in weights) / total, 1)
