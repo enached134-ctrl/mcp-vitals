@@ -1,0 +1,92 @@
+[
+  {
+    "name": "everything",
+    "tools": 13,
+    "L1": 87.3,
+    "L2": 95.6,
+    "l2_summary": {
+      "called": 9,
+      "success_rate": 0.889,
+      "graceful_rate": 1.0,
+      "p95_ms": 16.0
+    },
+    "L3": 91.7,
+    "l3_summary": {
+      "tasks": 12,
+      "tool_selection_accuracy": 0.917,
+      "argument_validity": 0.917
+    },
+    "confusions": [
+      "gzip-file-as-resource \u2192 echo"
+    ],
+    "overall": 92.4,
+    "grade": "A"
+  },
+  {
+    "name": "memory",
+    "tools": 9,
+    "L1": 88.9,
+    "L2": 100.0,
+    "l2_summary": {
+      "called": 3,
+      "success_rate": 1.0,
+      "graceful_rate": 1.0,
+      "p95_ms": 16.0
+    },
+    "L3": 88.9,
+    "l3_summary": {
+      "tasks": 9,
+      "tool_selection_accuracy": 0.889,
+      "argument_validity": 0.889
+    },
+    "confusions": [
+      "delete_relations \u2192 read_graph"
+    ],
+    "overall": 93.7,
+    "grade": "A"
+  },
+  {
+    "name": "sequential-thinking",
+    "tools": 1,
+    "L1": 100.0,
+    "L2": 0.0,
+    "l2_summary": {
+      "called": 0,
+      "note": "no read-only tools to exercise"
+    },
+    "L3": 100.0,
+    "l3_summary": {
+      "tasks": 1,
+      "tool_selection_accuracy": 1.0,
+      "argument_validity": 1.0
+    },
+    "confusions": [],
+    "overall": 57.1,
+    "grade": "F"
+  },
+  {
+    "name": "filesystem",
+    "tools": 14,
+    "L1": 78.6,
+    "L2": 64.4,
+    "l2_summary": {
+      "called": 9,
+      "success_rate": 0.111,
+      "graceful_rate": 1.0,
+      "p95_ms": 0.0
+    },
+    "L3": 75.0,
+    "l3_summary": {
+      "tasks": 12,
+      "tool_selection_accuracy": 0.75,
+      "argument_validity": 0.75
+    },
+    "confusions": [
+      "read_file \u2192 read_text_file",
+      "read_multiple_files \u2192 search_files",
+      "edit_file \u2192 read_text_file"
+    ],
+    "overall": 71.2,
+    "grade": "C"
+  }
+]

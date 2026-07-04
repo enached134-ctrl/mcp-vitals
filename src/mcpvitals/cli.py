@@ -67,6 +67,14 @@ def _grade(args: argparse.Namespace) -> int:
     with open(args.json_out, "w", encoding="utf-8") as f:
         json.dump(result, f, indent=2)
 
+    if args.badge:
+        color = {"A": "brightgreen", "B": "green", "C": "yellow",
+                 "D": "orange", "F": "red"}[grade]
+        badge = {"schemaVersion": 1, "label": "mcp-vitals",
+                 "message": f"{grade} · {overall:.0f}", "color": color}
+        with open(args.badge, "w", encoding="utf-8") as f:
+            json.dump(badge, f)
+
     detail = f"L1 {l1.score:.0f}" + (f" · L2 {l2.score:.0f}" if l2 else "")
     detail += f" · L3 {l3.score:.0f}" if (l3 and not l3.note) else ""
     print(f"\n  GRADE: {grade}  (overall {overall:.0f}/100 · {detail})")
@@ -90,6 +98,7 @@ def main() -> None:
     g.add_argument("--out", default="report.html", help="HTML report path")
     g.add_argument("--json-out", default="score.json", help="score JSON path")
     g.add_argument("--min-grade", help="CI gate: fail if the grade is worse than this (e.g. B)")
+    g.add_argument("--badge", help="write a shields.io endpoint JSON to this path")
     g.add_argument("--behavioral", action="store_true",
                    help="run the L2 behavioral suite (calls read-only tools)")
     g.add_argument("--behavioral-write", action="store_true",

@@ -42,7 +42,7 @@ non-zero when the grade regresses against a baseline.
 - [x] **M1**: connector (enumerate tools/resources/prompts) + L1 static linter + HTML report — grades a real server end-to-end
 - [x] **M2**: L2 behavioral suite — auto-generates valid/invalid cases from each schema, runs them, measures success rate, graceful-error handling, and p50/p95 latency. Read-only by default (safe on third-party servers)
 - [x] **M3**: L3 agent-usability — *the layer nobody else measures*. An LLM is given the full tool list and a realistic task per tool and must pick the right one and construct valid arguments. Reports tool-selection accuracy, argument validity, and which tools get confused. Never calls the server (safe on any target). Needs an LLM key.
-- [ ] M4: GitHub Action + badge endpoint + the launch run (grade the top public MCP servers)
+- [x] **M4**: reusable GitHub Action (`uses: enached134-ctrl/mcp-vitals@v1`) + shields.io badge output + a launch run grading official public MCP servers ([`launch/STATE-OF-MCP.md`](launch/STATE-OF-MCP.md))
 
 ## Quickstart
 
@@ -58,6 +58,27 @@ mcpvitals grade "python examples/sample_server.py" --behavioral
 # any stdio command or http(s):// URL works; add --min-grade B to gate CI.
 # → writes report.html + score.json
 ```
+
+## Use it in your CI
+
+Gate every push on your MCP server's reliability grade:
+
+```yaml
+# .github/workflows/mcp-vitals.yml
+jobs:
+  reliability:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: enached134-ctrl/mcp-vitals@v1
+        with:
+          target: "python -m my_server"   # stdio command or http(s):// URL
+          behavioral: "true"
+          min-grade: "B"                   # fail the build below a B
+```
+
+`mcpvitals grade ... --badge badge.json` writes a [shields.io endpoint](https://shields.io/endpoint)
+payload, so you can show a live grade badge on your own README.
 
 ## License
 

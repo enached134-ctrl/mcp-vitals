@@ -1,0 +1,44 @@
+name: "mcp-vitals"
+description: "Grade an MCP server's reliability (A–F) and gate CI on it."
+branding:
+  icon: "check-circle"
+  color: "green"
+
+inputs:
+  target:
+    description: 'MCP server target — a stdio command (e.g. "python -m my_server") or an http(s):// URL.'
+    required: true
+  min-grade:
+    description: "Fail the job if the grade is worse than this letter (e.g. B). Empty = never fail."
+    required: false
+    default: ""
+  behavioral:
+    description: 'Run the L2 behavioral suite (calls read-only tools). "true"/"false".'
+    required: false
+    default: "false"
+  agent:
+    description: 'Run the L3 agent-usability battery (needs GEMINI_API_KEY in env). "true"/"false".'
+    required: false
+    default: "false"
+  version:
+    description: "Git ref of mcp-vitals to install."
+    required: false
+    default: "main"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - name: Install mcp-vitals
+      shell: bash
+      run: pip install "git+https://github.com/enached134-ctrl/mcp-vitals@${{ inputs.version }}"
+    - name: Grade
+      shell: bash
+      run: |
+        args=()
+        [ "${{ inputs.behavioral }}" = "true" ] && args+=(--behavioral)
+        [ "${{ inputs.agent }}" = "true" ] && args+=(--agent)
+        [ -n "${{ inputs.min-grade }}" ] && args+=(--min-grade "${{ inputs.min-grade }}")
+        mcpvitals grade "${{ inputs.target }}" --badge badge.json "${args[@]}"

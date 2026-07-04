@@ -6,6 +6,7 @@ Target may be an http(s):// URL or a stdio command (e.g. "python -m my_server").
 from __future__ import annotations
 
 import asyncio
+import os
 import shlex
 from dataclasses import dataclass, field
 from typing import Any
@@ -43,7 +44,13 @@ def _client(target: str):
     parts = shlex.split(target, posix=False)
     from fastmcp.client.transports import StdioTransport
 
-    return Client(StdioTransport(command=parts[0], args=parts[1:]))
+    # Silence the graded server's own stderr (startup banners, shutdown-pipe noise) so it
+    # doesn't pollute mcp-vitals' output. Fall back gracefully on older transport signatures.
+    try:
+        errlog = open(os.devnull, "w")  # noqa: SIM115 - closed with the transport process
+        return Client(StdioTransport(command=parts[0], args=parts[1:], errlog=errlog))
+    except TypeError:
+        return Client(StdioTransport(command=parts[0], args=parts[1:]))
 
 
 async def _inspect(target: str) -> Inventory:
