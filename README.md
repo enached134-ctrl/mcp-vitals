@@ -3,7 +3,7 @@
 **Reliability grades for MCP servers — run behavioral + agent-usability evals against *your*
 server, in CI. Open source.**
 
-[![CI](https://img.shields.io/badge/CI-pending-lightgrey.svg)](#)
+[![CI](https://github.com/enached134-ctrl/mcp-vitals/actions/workflows/ci.yml/badge.svg)](https://github.com/enached134-ctrl/mcp-vitals/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 
