@@ -41,7 +41,7 @@ non-zero when the grade regresses against a baseline.
 
 - [x] **M1**: connector (enumerate tools/resources/prompts) + L1 static linter + HTML report — grades a real server end-to-end
 - [x] **M2**: L2 behavioral suite — auto-generates valid/invalid cases from each schema, runs them, measures success rate, graceful-error handling, and p50/p95 latency. Read-only by default (safe on third-party servers)
-- [ ] M3: L3 agent-usability judge battery (+ calibration) + L4 + L5
+- [x] **M3**: L3 agent-usability — *the layer nobody else measures*. An LLM is given the full tool list and a realistic task per tool and must pick the right one and construct valid arguments. Reports tool-selection accuracy, argument validity, and which tools get confused. Never calls the server (safe on any target). Needs an LLM key.
 - [ ] M4: GitHub Action + badge endpoint + the launch run (grade the top public MCP servers)
 
 ## Quickstart

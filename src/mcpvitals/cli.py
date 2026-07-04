@@ -10,6 +10,7 @@ from . import __version__, combine, grade_letter
 from .connect import inspect
 from .l1_static import score as score_l1
 from .l2_behavioral import run as run_l2
+from .l3_agent import run as run_l3
 from .report import render
 
 
@@ -34,10 +35,20 @@ def _grade(args: argparse.Namespace) -> int:
         layers["L2"] = l2.score
         print(f"    L2: {l2.summary}")
 
+    l3 = None
+    if args.agent and not inv.error:
+        print("  running L3 agent-usability battery (LLM-as-agent; no server calls)...")
+        l3 = run_l3(inv)
+        if l3.note:
+            print(f"    L3: {l3.note}")
+        else:
+            layers["L3"] = l3.score
+            print(f"    L3: {l3.summary}")
+
     overall = combine(layers)
     grade = grade_letter(overall)
 
-    html = render(inv, l1, l2)
+    html = render(inv, l1, l2, l3)
     with open(args.out, "w", encoding="utf-8") as f:
         f.write(html)
 
@@ -47,12 +58,17 @@ def _grade(args: argparse.Namespace) -> int:
         "score": overall,
         "layers": layers,
         "tools": [{"name": t.tool, "score": t.score} for t in l1.tools],
-        "summary": {"l1": l1.summary, "l2": (l2.summary if l2 else None)},
+        "summary": {
+            "l1": l1.summary,
+            "l2": (l2.summary if l2 else None),
+            "l3": (l3.summary if (l3 and not l3.note) else None),
+        },
     }
     with open(args.json_out, "w", encoding="utf-8") as f:
         json.dump(result, f, indent=2)
 
     detail = f"L1 {l1.score:.0f}" + (f" · L2 {l2.score:.0f}" if l2 else "")
+    detail += f" · L3 {l3.score:.0f}" if (l3 and not l3.note) else ""
     print(f"\n  GRADE: {grade}  (overall {overall:.0f}/100 · {detail})")
     for t in sorted(l1.tools, key=lambda x: x.score):
         print(f"    {grade_letter(t.score)}  {t.score:5.0f}  {t.tool}")
@@ -78,6 +94,8 @@ def main() -> None:
                    help="run the L2 behavioral suite (calls read-only tools)")
     g.add_argument("--behavioral-write", action="store_true",
                    help="also exercise write-ish tools — only for servers you run yourself")
+    g.add_argument("--agent", action="store_true",
+                   help="run the L3 agent-usability battery (LLM picks tools; needs an LLM key)")
     g.add_argument("--tolerate-error", action="store_true",
                    help="still write a report on connection failure instead of exiting 2")
     g.set_defaults(func=_grade)
