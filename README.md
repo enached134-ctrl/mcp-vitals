@@ -43,6 +43,7 @@ non-zero when the grade regresses against a baseline.
 - [x] **M2**: L2 behavioral suite — auto-generates valid/invalid cases from each schema, runs them, measures success rate, graceful-error handling, and p50/p95 latency. Read-only by default (safe on third-party servers)
 - [x] **M3**: L3 agent-usability — *the layer nobody else measures*. An LLM is given the full tool list and a realistic task per tool and must pick the right one and construct valid arguments. Reports tool-selection accuracy, argument validity, and which tools get confused. Never calls the server (safe on any target). Needs an LLM key.
 - [x] **M4**: reusable GitHub Action (`uses: enached134-ctrl/mcp-vitals@v1`) + shields.io badge output + a launch run grading official public MCP servers ([`launch/STATE-OF-MCP.md`](launch/STATE-OF-MCP.md))
+- [x] **L4 + L5**: adversarial (tool-poisoning & over-permission heuristics) and ops (transport security, typing discipline, error handling). Both offline — they run by default with L1, no server calls. **All five layers now live.**
 
 ## Quickstart
 

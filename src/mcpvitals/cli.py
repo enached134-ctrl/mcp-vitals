@@ -11,6 +11,8 @@ from .connect import inspect
 from .l1_static import score as score_l1
 from .l2_behavioral import run as run_l2
 from .l3_agent import run as run_l3
+from .l4_adversarial import score as score_l4
+from .l5_ops import score as score_l5
 from .report import render
 
 
@@ -24,8 +26,12 @@ def _grade(args: argparse.Namespace) -> int:
     print(f"  enumerated {len(inv.tools)} tools, {len(inv.resources)} resources, "
           f"{len(inv.prompts)} prompts")
 
+    # L1, L4, L5 are offline (no server calls) — always run.
     l1 = score_l1(inv)
+    l4 = score_l4(inv) if not inv.error else None
     layers = {"L1": l1.score}
+    if l4:
+        layers["L4"] = l4.score
 
     l2 = None
     if args.behavioral and not inv.error:
@@ -34,6 +40,12 @@ def _grade(args: argparse.Namespace) -> int:
         l2 = run_l2(inv, include_write=args.behavioral_write)
         layers["L2"] = l2.score
         print(f"    L2: {l2.summary}")
+
+    l5 = None
+    if not inv.error:
+        graceful = l2.summary.get("graceful_rate") if l2 else None
+        l5 = score_l5(inv, graceful_rate=graceful)
+        layers["L5"] = l5.score
 
     l3 = None
     if args.agent and not inv.error:
@@ -48,7 +60,7 @@ def _grade(args: argparse.Namespace) -> int:
     overall = combine(layers)
     grade = grade_letter(overall)
 
-    html = render(inv, l1, l2, l3)
+    html = render(inv, l1, l2, l3, l4, l5)
     with open(args.out, "w", encoding="utf-8") as f:
         f.write(html)
 
@@ -62,6 +74,8 @@ def _grade(args: argparse.Namespace) -> int:
             "l1": l1.summary,
             "l2": (l2.summary if l2 else None),
             "l3": (l3.summary if (l3 and not l3.note) else None),
+            "l4": (l4.summary if l4 else None),
+            "l5": (l5.summary if l5 else None),
         },
     }
     with open(args.json_out, "w", encoding="utf-8") as f:
@@ -75,8 +89,11 @@ def _grade(args: argparse.Namespace) -> int:
         with open(args.badge, "w", encoding="utf-8") as f:
             json.dump(badge, f)
 
-    detail = f"L1 {l1.score:.0f}" + (f" · L2 {l2.score:.0f}" if l2 else "")
+    detail = f"L1 {l1.score:.0f}"
+    detail += f" · L2 {l2.score:.0f}" if l2 else ""
     detail += f" · L3 {l3.score:.0f}" if (l3 and not l3.note) else ""
+    detail += f" · L4 {l4.score:.0f}" if l4 else ""
+    detail += f" · L5 {l5.score:.0f}" if l5 else ""
     print(f"\n  GRADE: {grade}  (overall {overall:.0f}/100 · {detail})")
     for t in sorted(l1.tools, key=lambda x: x.score):
         print(f"    {grade_letter(t.score)}  {t.score:5.0f}  {t.tool}")
