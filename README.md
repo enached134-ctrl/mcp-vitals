@@ -7,6 +7,8 @@ server, in CI. Open source.**
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 
+![mcp-vitals graded four official reference MCP servers: memory A, everything A, filesystem C, sequential-thinking F — with the filesystem tool-naming finding](assets/mcp-vitals-proof.png)
+
 Security scanners tell you whether an MCP server is *safe*. Hosted leaderboards grade its
 *definitions* from the outside. **Neither tells you whether the tools actually work — or
 whether an AI agent can figure out how to use them.** That behavioral, agent-usability layer
